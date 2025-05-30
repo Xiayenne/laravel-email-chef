@@ -29,9 +29,7 @@ class SegmentsApi extends Api
         
         $out = collect();
         foreach ($collections as $collection) {
-            if (is_array($collection) || is_object($collection)) {
-                $out->push(new GetCollection((object)$collection));
-            }
+            $out->push(new GetCollection((object)$collection));
         }
         return $out;
     }

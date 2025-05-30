@@ -10,7 +10,7 @@ class GetInstance extends AbstractEntity
     public int $id;
     public int $list_id;
     public ?string $logic;
-    public ?string $condition_group;
+    public ?array $condition_groups;
     public string $name;
     public ?string $description;
 

@@ -13,11 +13,29 @@ use OfflineAgency\LaravelEmailChef\Entities\Segments\UpdatedSegmentEntity;
 use OfflineAgency\LaravelEmailChef\Entities\Segments\DeleteSegments;
 use OfflineAgency\LaravelEmailChef\Tests\TestCase;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
+
+use function PHPUnit\Framework\assertIsArray;
 
 class SegmentsTest extends TestCase
 {
     public function test_get_collection()
     {
+        $mockResponse = [
+            [
+                'id' => '12345',
+                'name' => 'Test Segment',
+                'description' => 'This is a test segment',
+                'match_count' => '100',
+                'total_count' => '200',
+                'last_refresh_time' => now()->toDateTimeString(),
+            ]
+        ];
+
+        Http::fake([
+            'https://app.emailchef.com/apps/api/v1/lists/*/segments*' => Http::response($mockResponse, 200),
+        ]);
+
         $segment = new SegmentsApi();
 
         $response = $segment->getCollection(
@@ -36,7 +54,7 @@ class SegmentsTest extends TestCase
         $this->assertIsString($segments->description);
         $this->assertIsInt($segments->match_count);
         $this->assertIsInt($segments->total_count);
-        $this->assertInstanceOf(Carbon::class, $segments->last_refresh_time);
+        $this->assertIsString($segments->last_refresh_time);
     }
 
     public function test_get_instance()
@@ -44,16 +62,23 @@ class SegmentsTest extends TestCase
         $segment = new SegmentsApi();
 
         $response = $segment->getInstance(
-            config('email-chef.segment_id'),
+            74016,
         );
 
         $this->assertInstanceOf(GetInstance::class, $response);
         $this->assertIsInt($response->id);
         $this->assertIsInt($response->list_id);
+        $this->assertIsString($response->logic);
+        $this->assertIsArray($response->condition_groups);
+        $this->assertIsString($response->condition_groups[0]->logic);
+        $this->assertIsArray($response->condition_groups[0]->conditions);
+        $this->assertIsString($response->condition_groups[0]->conditions[0]->id);
+        $this->assertIsString($response->condition_groups[0]->conditions[0]->field_id);
+        $this->assertNull($response->condition_groups[0]->conditions[0]->comparable_id);
+        $this->assertIsString($response->condition_groups[0]->conditions[0]->comparator_id);
+        $this->assertIsString($response->condition_groups[0]->conditions[0]->value);
         $this->assertIsString($response->name);
         $this->assertIsString($response->description);
-        $this->assertNull($response->logic);
-        $this->assertNull($response->condition_group);
     }
 
     public function test_get_count()
@@ -70,7 +95,7 @@ class SegmentsTest extends TestCase
     {
         $segments = new SegmentsApi();
         $response = $segments->getContactsCount(
-            config('email-chef.segment_id'),
+            74016,
         );
 
         $this->assertInstanceOf(ContactsCount::class, $response);
@@ -111,7 +136,7 @@ class SegmentsTest extends TestCase
     {
         $segment = new SegmentsApi;
 
-        $response = $segment->update(config('email-chef.segment_id'), [
+        $response = $segment->update(74016, [
             'list_id' => config('email-chef.list_id'),
             'logic' => 'AND',
             'condition_groups' => [
@@ -139,7 +164,7 @@ class SegmentsTest extends TestCase
     {
         $segment = new SegmentsApi();
 
-        $response = $segment->delete(config('email-chef.segment_id'));
+        $response = $segment->delete(74016);
 
         $this->assertInstanceOf(DeleteSegments::class, $response);
         $this->assertIsInt($response->id);
