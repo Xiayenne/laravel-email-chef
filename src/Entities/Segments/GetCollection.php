@@ -7,10 +7,10 @@ use Carbon\Carbon;
 
 class GetCollection extends AbstractEntity
 {
-    public string $id;
-    public int $list_id;
+    public ?string $id;
     public string $name;
+    public string $description;
     public int $match_count;
     public int $total_count;
-    public Carbon $refresh_time;
+    public Carbon $last_refresh_time;
 }

@@ -6,6 +6,6 @@ use OfflineAgency\LaravelEmailChef\Entities\AbstractEntity;
 
 class CreatedSegmentEntity extends AbstractEntity
 {
-    public string $id;
+    public int $id;
     public string $status;
 }

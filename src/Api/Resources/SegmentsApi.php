@@ -12,13 +12,14 @@ use OfflineAgency\LaravelEmailChef\Entities\Segments\GetInstance;
 use OfflineAgency\LaravelEmailChef\Entities\Segments\CountSegments;
 use OfflineAgency\LaravelEmailChef\Entities\Segments\CreatedSegmentEntity;
 use OfflineAgency\LaravelEmailChef\Entities\Segments\UpdatedSegmentEntity;
+use OfflineAgency\LaravelEmailChef\Entities\Segments\DeleteSegments;
 
 
 class SegmentsApi extends Api
 {
-    public function getCollection( ?int $limit, ?int $offset)
+    public function getCollection(?int $list_id, int $limit, int $offset)
     {
-        $response = $this->get('segments?limit='.$limit.'offset='.$offset);
+        $response = $this->get('lists/'.$list_id.'segments?limit='.$limit.'&offset='.$offset);
 
         if(!$response->success){
             return new Error($response -> data);
@@ -28,7 +29,9 @@ class SegmentsApi extends Api
         
         $out = collect();
         foreach ($collections as $collection) {
-            $out->push(new GetCollection($collection));
+            if (is_array($collection) || is_object($collection)) {
+                $out->push(new GetCollection((object)$collection));
+            }
         }
         return $out;
     }
@@ -51,9 +54,7 @@ class SegmentsApi extends Api
 
     public function getCount(int $list_id)
     {
-        $response = $this->get('list/'.$list_id.'/segments/count', [
-            'list_id' => $list_id,
-        ]);
+        $response = $this->get('lists/'.$list_id.'/segments/count');
 
         if(!$response->success){
             return new Error($response->data);
@@ -84,7 +85,7 @@ class SegmentsApi extends Api
         $validator = Validator::make($instance_in, [
             'list_id' => 'required',
             'logic' => 'required|string',
-            'condition_groups' => 'array',
+            'condition_groups' => 'required|array',
             'name' => 'required|string',
             'description' => 'string|nullable',
         ]);
@@ -93,9 +94,7 @@ class SegmentsApi extends Api
             return $validator->errors();
         }
 
-        $response = $this->post('contacts', [
-            'instance_in' => array_merge($instance_in, []),
-        ]);
+        $response = $this->post('segments', [ 'instance_in' => $instance_in,]);
 
         if (! $response->success) {
             return new Error($response->data);
@@ -137,6 +136,7 @@ class SegmentsApi extends Api
             return new Error($response->data);
         }
 
-        return 'Segment #'.$segment_id.' deleted';
+        $segment = $response->data;
+        return new DeleteSegments($segment);
     }
 }

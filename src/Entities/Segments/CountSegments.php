@@ -7,5 +7,5 @@ use OfflineAgency\LaravelEmailChef\Entities\AbstractEntity;
 
 class CountSegments extends AbstractEntity
 {
-    public int $total_count;
+    public int $totalcount;
 }
